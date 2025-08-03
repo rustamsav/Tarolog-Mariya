@@ -181,15 +181,15 @@
 
   <section>
 
-  <h2>Форма обратной связи</h2>
-  <form id="contactForm">
-    <input type="text" id="name" placeholder="Ваше имя" required />
-    <input type="email" id="email" placeholder="Ваш Instagram или Telegram" required />
-    <textarea id="message" rows="4" placeholder="Ваш вопрос или сообщение" required></textarea>
-    <button type="submit" class="btn">Отправить</button>
-  </form>
-  <p id="status"></p>
-</section>
+    <h2>Форма обратной связи</h2>
+    <form id="contactForm">
+      <input type="text" id="name" placeholder="Ваше имя" required />
+      <input type="email" id="email" placeholder="Ваш Instagram или Telegram" required />
+      <textarea id="message" rows="4" placeholder="Ваш вопрос или сообщение" required></textarea>
+      <button type="submit" class="btn">Отправить</button>
+    </form>
+    <p id="status"></p>
+  </section>
 
   </section>
 
@@ -271,18 +271,20 @@
       }
     }
 
-    async function sendContactToServer(name, email, message) {
-      try {
-        const res = await fetch('http://localhost:3000/send-contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, message }),
-        });
-        return res.ok;
-      } catch {
-        return false;
-      }
-    }
+   async function sendContactToServer(name, email, message) {
+  try {
+    const res = await fetch("/send-contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, message }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("Ошибка при отправке контакта:", err);
+    return false;
+  }
+}
+
 
     reviewForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -336,4 +338,5 @@
   </script>
 
 </body>
+
 </html>
