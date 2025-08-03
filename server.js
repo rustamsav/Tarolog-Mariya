@@ -48,7 +48,7 @@ app.post("/send-review", (req, res) => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: message }),
-  });
+  }).catch(console.error);
 
   res.json({ success: true });
 });
@@ -65,12 +65,12 @@ app.post("/send-contact", (req, res) => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: textMsg }),
-  });
+  }).catch(console.error);
 
   res.json({ success: true });
 });
 
 // Запуск сервера
 app.listen(PORT, () => {
-  console.log(`✅ Сервер запущен: http://localhost:${PORT}`);
+  console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
