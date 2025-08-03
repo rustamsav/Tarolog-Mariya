@@ -3,14 +3,28 @@ import cors from "cors";
 import fs from "fs";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Для работы __dirname в ES-модулях
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors());
 app.use(express.json());
+
+// Раздаём статические файлы из папки static
+app.use(express.static(path.join(__dirname, "static")));
+
+// Отдаём главную страницу
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "Tarolog.html"));
+});
 
 // Загружаем отзывы из файла
 function loadReviews() {
@@ -44,10 +58,10 @@ app.post("/send-review", (req, res) => {
 
   // Отправка в Telegram
   const message = `📝 Новый отзыв!\n\n👤 Имя: ${name}\n💬 Отзыв: ${text}`;
-  fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: message }),
+    body: JSON.stringify({ chat_id: process.env.CHAT_ID, text: message }),
   }).catch(console.error);
 
   res.json({ success: true });
@@ -61,10 +75,10 @@ app.post("/send-contact", (req, res) => {
   }
 
   const textMsg = `📩 Новое сообщение!\n\n👤 Имя: ${name}\n📧 Email: ${email}\n💬 Сообщение: ${message}`;
-  fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: textMsg }),
+    body: JSON.stringify({ chat_id: process.env.CHAT_ID, text: textMsg }),
   }).catch(console.error);
 
   res.json({ success: true });
