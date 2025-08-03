@@ -3,8 +3,13 @@ import cors from "cors";
 import fs from "fs";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +17,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Загружаем отзывы
+// Отдаём статику из папки public
+app.use(express.static(path.join(__dirname, "public")));
+
+// Главная страница
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Функции для отзывов
 function loadReviews() {
   try {
     return JSON.parse(fs.readFileSync("reviews.json", "utf8"));
@@ -21,7 +34,6 @@ function loadReviews() {
   }
 }
 
-// Сохраняем отзывы
 function saveReviews(reviews) {
   fs.writeFileSync("reviews.json", JSON.stringify(reviews, null, 2));
 }
@@ -31,7 +43,7 @@ app.get("/reviews", (req, res) => {
   res.json(loadReviews());
 });
 
-// Сохранить новый отзыв
+// Добавить новый отзыв
 app.post("/send-review", (req, res) => {
   const { name, contact, text } = req.body;
   if (!name || !contact || !text) {
@@ -42,7 +54,7 @@ app.post("/send-review", (req, res) => {
   reviews.push({ name, contact, text });
   saveReviews(reviews);
 
-  // Отправка в Telegram
+  // Отправить уведомление в Telegram
   const message = `📝 Новый отзыв!\n👤 Имя: ${name}\n📱 Контакт: ${contact}\n💬 Отзыв: ${text}`;
   fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
     method: "POST",
@@ -53,7 +65,7 @@ app.post("/send-review", (req, res) => {
   res.json({ success: true });
 });
 
-// Обратная связь
+// Обратная связь — отправка сообщения
 app.post("/send-contact", (req, res) => {
   const { name, email, message } = req.body;
   if (!name || !email) {
@@ -70,6 +82,7 @@ app.post("/send-contact", (req, res) => {
   res.json({ success: true });
 });
 
+// Запуск сервера
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
