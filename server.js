@@ -3,30 +3,16 @@ import cors from "cors";
 import fs from "fs";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Для работы __dirname в ES-модулях
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(cors());
 app.use(express.json());
 
-// Раздаём статические файлы из папки static
-app.use(express.static(path.join(__dirname, "static")));
-
-// Отдаём главную страницу
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "Tarolog.html"));
-});
-
-// Загружаем отзывы из файла
+// Загружаем отзывы
 function loadReviews() {
   try {
     return JSON.parse(fs.readFileSync("reviews.json", "utf8"));
@@ -35,7 +21,7 @@ function loadReviews() {
   }
 }
 
-// Сохраняем отзывы в файл
+// Сохраняем отзывы
 function saveReviews(reviews) {
   fs.writeFileSync("reviews.json", JSON.stringify(reviews, null, 2));
 }
@@ -47,17 +33,17 @@ app.get("/reviews", (req, res) => {
 
 // Сохранить новый отзыв
 app.post("/send-review", (req, res) => {
-  const { name, text } = req.body;
-  if (!name || !text) {
-    return res.status(400).json({ success: false, message: "Имя и отзыв обязательны" });
+  const { name, contact, text } = req.body;
+  if (!name || !contact || !text) {
+    return res.status(400).json({ success: false, message: "Все поля обязательны" });
   }
 
   const reviews = loadReviews();
-  reviews.push({ name, text });
+  reviews.push({ name, contact, text });
   saveReviews(reviews);
 
   // Отправка в Telegram
-  const message = `📝 Новый отзыв!\n\n👤 Имя: ${name}\n💬 Отзыв: ${text}`;
+  const message = `📝 Новый отзыв!\n👤 Имя: ${name}\n📱 Контакт: ${contact}\n💬 Отзыв: ${text}`;
   fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,14 +53,14 @@ app.post("/send-review", (req, res) => {
   res.json({ success: true });
 });
 
-// Сообщение с формы контакта
+// Обратная связь
 app.post("/send-contact", (req, res) => {
   const { name, email, message } = req.body;
   if (!name || !email) {
     return res.status(400).json({ success: false, message: "Имя и email обязательны" });
   }
 
-  const textMsg = `📩 Новое сообщение!\n\n👤 Имя: ${name}\n📧 Email: ${email}\n💬 Сообщение: ${message}`;
+  const textMsg = `📩 Новое сообщение!\n👤 Имя: ${name}\n📧 Контакт: ${email}\n💬 Сообщение: ${message}`;
   fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -84,7 +70,6 @@ app.post("/send-contact", (req, res) => {
   res.json({ success: true });
 });
 
-// Запуск сервера
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });

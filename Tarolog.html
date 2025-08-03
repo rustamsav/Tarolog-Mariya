@@ -77,49 +77,14 @@
       margin-top: 10px;
     }
 
-    #status {
+    #status,
+    #reviewStatus {
       margin-top: 10px;
       font-size: 16px;
       color: #ffd700;
       text-align: center;
     }
 
-    .faq {
-      margin: 40px auto;
-      max-width: 600px;
-      text-align: left;
-    }
-
-    .faq p {
-      margin: 10px 0;
-    }
-
-    .social-icons {
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    .social-icons img {
-      width: 40px;
-      margin: 0 10px;
-      transition: 0.3s;
-      vertical-align: middle;
-    }
-
-    .social-icons img:hover {
-      transform: scale(1.2);
-    }
-
-    footer {
-      background: #111;
-      padding: 20px;
-      font-size: 14px;
-      color: #aaa;
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    /* Отзывы */
     .reviews-list {
       max-width: 700px;
       margin: 20px auto 50px;
@@ -161,16 +126,10 @@
   </section>
 
   <section>
-    <h2>Услуги</h2>
-    <p>🔮 Расклад на любовь и отношения<br />
-      💰 Прогноз на финансы и карьеру<br />
-      🌙 Путь самопознания и духовного развития</p>
-  </section>
-
-  <section>
     <h2>Оставьте отзыв</h2>
     <form id="reviewForm">
       <input type="text" id="reviewName" placeholder="Ваше имя" required />
+      <input type="text" id="reviewContact" placeholder="Ваш телефон или Instagram" required />
       <textarea id="reviewText" rows="4" placeholder="Ваш отзыв" required></textarea>
       <button type="submit" class="btn">Отправить отзыв</button>
     </form>
@@ -180,44 +139,14 @@
   </section>
 
   <section>
-
     <h2>Форма обратной связи</h2>
     <form id="contactForm">
       <input type="text" id="name" placeholder="Ваше имя" required />
-      <input type="email" id="email" placeholder="Ваш Instagram или Telegram" required />
+      <input type="text" id="email" placeholder="Ваш Instagram или Telegram" required />
       <textarea id="message" rows="4" placeholder="Ваш вопрос или сообщение" required></textarea>
       <button type="submit" class="btn">Отправить</button>
     </form>
     <p id="status"></p>
-  </section>
-
-  </section>
-
-  <section class="faq">
-    <h2>Часто задаваемые вопросы (FAQ)</h2>
-    <p><b>Сколько длится расклад?</b> — Обычно 30–60 минут.</p>
-    <p><b>Можно ли провести консультацию онлайн?</b> — Да, через Telegram или Instagram.</p>
-    <p><b>Нужны ли специальные знания для расклада?</b> — Нет, достаточно вашего запроса и желания узнать ответы.</p>
-  </section>
-
-  <section>
-    <h2>График работы</h2>
-    <p>Понедельник — Пятница: 10:00 – 20:00<br />
-      Суббота: 12:00 – 18:00<br />
-      Воскресенье: выходной</p>
-  </section>
-
-  <section>
-    <h2>Специальные предложения</h2>
-    <p>✨ Скидка 20% на первый расклад для новых клиентов! ✨</p>
-  </section>
-
-  <section class="social-icons">
-    <h2>Контакты</h2>
-    <a href="https://t.me/m_12139" target="_blank" rel="noopener noreferrer"><img
-        src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" /></a>
-    <a href="https://instagram.com/tarolog_gadanie_mariya" target="_blank" rel="noopener noreferrer"><img
-        src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" /></a>
   </section>
 
   <footer>
@@ -234,17 +163,18 @@
     function loadReviews() {
       const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
       reviewsList.innerHTML = '';
-      reviews.forEach(({ name, text }) => {
+      reviews.forEach(({ name, contact, text }) => {
         const li = document.createElement('li');
         li.classList.add('review-item');
-        li.innerHTML = `<p>«${escapeHtml(text)}»</p><b>— ${escapeHtml(name)}</b>`;
+        li.innerHTML = `<p>«${escapeHtml(text)}»</p>
+                        <b>— ${escapeHtml(name)} (${escapeHtml(contact)})</b>`;
         reviewsList.appendChild(li);
       });
     }
 
-    function saveReview(name, text) {
+    function saveReview(name, contact, text) {
       const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      reviews.push({ name, text });
+      reviews.push({ name, contact, text });
       localStorage.setItem('reviews', JSON.stringify(reviews));
     }
 
@@ -258,50 +188,51 @@
       })[m]);
     }
 
-    async function sendReviewToServer(name, text) {
+    async function sendReviewToServer(name, contact, text) {
       try {
-        const res = await fetch('http://localhost:3000/send-review', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, text }),
+        const res = await fetch("/send-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, contact, text }),
         });
         return res.ok;
-      } catch {
+      } catch (err) {
+        console.error("Ошибка при отправке отзыва:", err);
         return false;
       }
     }
 
-   async function sendContactToServer(name, email, message) {
-  try {
-    const res = await fetch("/send-contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, message }),
-    });
-    return res.ok;
-  } catch (err) {
-    console.error("Ошибка при отправке контакта:", err);
-    return false;
-  }
-}
-
+    async function sendContactToServer(name, email, message) {
+      try {
+        const res = await fetch("/send-contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, message }),
+        });
+        return res.ok;
+      } catch (err) {
+        console.error("Ошибка при отправке контакта:", err);
+        return false;
+      }
+    }
 
     reviewForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = reviewForm.reviewName.value.trim();
+      const contact = reviewForm.reviewContact.value.trim();
       const text = reviewForm.reviewText.value.trim();
 
-      if (!name || !text) {
+      if (!name || !contact || !text) {
         reviewStatus.innerText = "Пожалуйста, заполните все поля.";
         return;
       }
 
       reviewStatus.innerText = "Отправка...";
 
-      const sent = await sendReviewToServer(name, text);
+      const sent = await sendReviewToServer(name, contact, text);
 
       if (sent) {
-        saveReview(name, text);
+        saveReview(name, contact, text);
         loadReviews();
         reviewForm.reset();
         reviewStatus.innerText = "Спасибо за ваш отзыв!";
@@ -318,7 +249,7 @@
       const message = contactForm.message.value.trim();
 
       if (!name || !email) {
-        contactStatus.innerText = "Пожалуйста, заполните имя и email.";
+        contactStatus.innerText = "Пожалуйста, заполните имя и контакт.";
         return;
       }
 
@@ -336,7 +267,5 @@
 
     loadReviews();
   </script>
-
 </body>
-
 </html>
